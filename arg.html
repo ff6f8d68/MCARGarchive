@@ -168,21 +168,13 @@
     <div class="arg-grid" id="arg-grid">
         <!-- ARG cards will be displayed here -->
     </div>
+    <div class="site-grid" id="site-grid">
+        <!-- Site cards will be displayed here -->
+    </div>
 
     <script>
-        let args = [];
-        let sites = [];
-
-        // Fetch data from JSON file
-        fetch('data.json')
-            .then(response => response.json())
-            .then(data => {
-                args = data.args;
-                sites = data.sites;
-                displayARGs(args);
-                displaySites();
-            })
-            .catch(error => console.error('Error fetching data:', error));
+        let args = JSON.parse(localStorage.getItem('args')) || [];
+        let sites = JSON.parse(localStorage.getItem('sites')) || [];
 
         function displayARGs(argsToDisplay) {
             const argGrid = document.getElementById('arg-grid');
@@ -206,7 +198,7 @@
         }
 
         function displaySites() {
-            const siteGrid = document.getElementById('arg-grid'); // Use the same grid for sites for simplicity
+            const siteGrid = document.getElementById('site-grid');
             siteGrid.innerHTML = '';
             sites.forEach(site => {
                 const siteCard = document.createElement('div');
@@ -228,7 +220,7 @@
             if (name && icon && url) {
                 const newSite = { name, icon, url };
                 sites.push(newSite);
-                saveData(); // Save data back to JSON file (optional step)
+                localStorage.setItem('sites', JSON.stringify(sites));
                 displaySites();
                 document.getElementById('site-name').value = '';
                 document.getElementById('site-icon').value = '';
@@ -244,12 +236,9 @@
             formContainer.style.display = formContainer.style.display === 'none' ? 'flex' : 'none';
         }
 
-        // Optional: Save data back to JSON file (requires server-side operation)
-        function saveData() {
-            // This would typically involve sending the updated JSON data to a server-side script
-            // that would then overwrite the existing data.json file.
-            // Without a backend, this step cannot be implemented securely.
-        }
+        // Display ARGs and sites on load
+        displayARGs(args);
+        displaySites();
     </script>
 </body>
 </html>
