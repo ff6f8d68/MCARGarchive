@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft ARG Selection and Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f4;
+        }
+        header {
+            width: 100%;
+            padding: 10px 0;
+            background-color: #333;
+            color: white;
+            text-align: center;
+        }
+        .search-container {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        .search-container input {
+            width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px 0 0 4px;
+        }
+        .search-container button {
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #333;
+            color: white;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        .arg-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            width: 80%;
+            margin: 20px 0;
+        }
+        .arg-card {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .arg-card img {
+            max-width: 100%;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .arg-card h3 {
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+        .create-container {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        .form-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+        .form-container input, .form-container button {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .site-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            width: 80%;
+            margin: 20px 0;
+        }
+        .site-card {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+        .site-card img {
+            max-width: 100%;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .site-card h3 {
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Minecraft ARG Selection and Search</h1>
+    </header>
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search for ARGs...">
+        <button onclick="searchARGs()">Search</button>
+    </div>
+    <div class="create-container">
+        <button onclick="toggleForm()">Create ARG Site</button>
+    </div>
+    <div class="form-container" id="form-container">
+        <input type="text" id="site-name" placeholder="Site Name">
+        <input type="text" id="site-icon" placeholder="Icon URL">
+        <input type="text" id="site-url" placeholder="Redirect URL">
+        <button onclick="createSite()">Create Site</button>
+    </div>
+    <div class="arg-grid" id="arg-grid">
+        <!-- ARG cards will be displayed here -->
+    </div>
+    <div class="site-grid" id="site-grid">
+        <!-- Site cards will be displayed here -->
+    </div>
+
+    <script>
+        const args = [
+        ];
+
+        const sites = JSON.parse(localStorage.getItem('sites')) || [];
+
+        function displayARGs(argsToDisplay) {
+            const argGrid = document.getElementById('arg-grid');
+            argGrid.innerHTML = '';
+            argsToDisplay.forEach(arg => {
+                const argCard = document.createElement('div');
+                argCard.className = 'arg-card';
+                argCard.innerHTML = `
+                    <img src="${arg.image}" alt="${arg.name}">
+                    <h3>${arg.name}</h3>
+                    <p>${arg.description}</p>
+                `;
+                argGrid.appendChild(argCard);
+            });
+        }
+
+        function searchARGs() {
+            const searchInput = document.getElementById('search-input').value.toLowerCase();
+            const filteredARGs = args.filter(arg => arg.name.toLowerCase().includes(searchInput));
+            displayARGs(filteredARGs);
+        }
+
+        function displaySites() {
+            const siteGrid = document.getElementById('site-grid');
+            siteGrid.innerHTML = '';
+            sites.forEach(site => {
+                const siteCard = document.createElement('div');
+                siteCard.className = 'site-card';
+                siteCard.innerHTML = `
+                    <img src="${site.icon}" alt="${site.name}">
+                    <h3>${site.name}</h3>
+                `;
+                siteCard.onclick = () => window.location.href = site.url;
+                siteGrid.appendChild(siteCard);
+            });
+        }
+
+        function createSite() {
+            const name = document.getElementById('site-name').value;
+            const icon = document.getElementById('site-icon').value;
+            const url = document.getElementById('site-url').value;
+
+            if (name && icon && url) {
+                const newSite = { name, icon, url };
+                sites.push(newSite);
+                localStorage.setItem('sites', JSON.stringify(sites));
+                displaySites();
+                document.getElementById('site-name').value = '';
+                document.getElementById('site-icon').value = '';
+                document.getElementById('site-url').value = '';
+                toggleForm(); // Hide form after creating site
+            } else {
+                alert('Please fill out all fields.');
+            }
+        }
+
+        function toggleForm() {
+            const formContainer = document.getElementById('form-container');
+            formContainer.style.display = formContainer.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        // Display ARGs and sites on load
+        displayARGs(args);
+        displaySites();
+    </script>
+</body>
+</html>
