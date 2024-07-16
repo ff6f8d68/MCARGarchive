@@ -170,7 +170,19 @@
     </div>
 
     <script>
-        const apiUrl = 'https://mc-arg-archive.vercel.app/api/args.php'; // PHP script handling server-side operations
+        let args = [];
+        let sites = [];
+
+        // Fetch data from JSON file
+        fetch('data.json')
+            .then(response => response.json())
+            .then(data => {
+                args = data.args;
+                sites = data.sites;
+                displayARGs(args);
+                displaySites();
+            })
+            .catch(error => console.error('Error fetching data:', error));
 
         function displayARGs(argsToDisplay) {
             const argGrid = document.getElementById('arg-grid');
@@ -189,10 +201,23 @@
 
         function searchARGs() {
             const searchInput = document.getElementById('search-input').value.toLowerCase();
-            fetch(apiUrl + `?search=${searchInput}`)
-                .then(response => response.json())
-                .then(data => displayARGs(data))
-                .catch(error => console.error('Error fetching ARGs:', error));
+            const filteredARGs = args.filter(arg => arg.name.toLowerCase().includes(searchInput));
+            displayARGs(filteredARGs);
+        }
+
+        function displaySites() {
+            const siteGrid = document.getElementById('arg-grid'); // Use the same grid for sites for simplicity
+            siteGrid.innerHTML = '';
+            sites.forEach(site => {
+                const siteCard = document.createElement('div');
+                siteCard.className = 'site-card';
+                siteCard.innerHTML = `
+                    <img src="${site.icon}" alt="${site.name}">
+                    <h3>${site.name}</h3>
+                `;
+                siteCard.onclick = () => window.location.href = site.url;
+                siteGrid.appendChild(siteCard);
+            });
         }
 
         function createSite() {
@@ -202,28 +227,13 @@
 
             if (name && icon && url) {
                 const newSite = { name, icon, url };
-
-                fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(newSite),
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to create site');
-                    }
-                    return response.json();
-                })
-                .then(() => {
-                    alert('Site created successfully');
-                    document.getElementById('site-name').value = '';
-                    document.getElementById('site-icon').value = '';
-                    document.getElementById('site-url').value = '';
-                    toggleForm();
-                })
-                .catch(error => console.error('Error creating site:', error));
+                sites.push(newSite);
+                saveData(); // Save data back to JSON file (optional step)
+                displaySites();
+                document.getElementById('site-name').value = '';
+                document.getElementById('site-icon').value = '';
+                document.getElementById('site-url').value = '';
+                toggleForm(); // Hide form after creating site
             } else {
                 alert('Please fill out all fields.');
             }
@@ -234,11 +244,12 @@
             formContainer.style.display = formContainer.style.display === 'none' ? 'flex' : 'none';
         }
 
-        // Initial display of ARGs
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => displayARGs(data))
-            .catch(error => console.error('Error fetching ARGs:', error));
+        // Optional: Save data back to JSON file (requires server-side operation)
+        function saveData() {
+            // This would typically involve sending the updated JSON data to a server-side script
+            // that would then overwrite the existing data.json file.
+            // Without a backend, this step cannot be implemented securely.
+        }
     </script>
 </body>
 </html>
