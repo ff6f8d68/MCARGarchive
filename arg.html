@@ -173,27 +173,54 @@
     </div>
 
     <script>
-        let data = {};
-
-        function loadJSON(callback) {
-            const xhr = new XMLHttpRequest();
-            xhr.overrideMimeType("application/json");
-            xhr.open('GET', 'data.json', true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    callback(xhr.responseText);
+        async function fetchData() {
+            try {
+                const response = await fetch('https://api.github.com/repos/ff6f8d68/MCARGarchive/contents/data.json', {
+                    headers: {
+                        Authorization: 'Bearer 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',
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-            };
-            xhr.send(null);
+                const data = await response.json();
+                const content = atob(data.content); // Decode base64-encoded content
+                return JSON.parse(content);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return null;
+            }
         }
 
-        function init() {
-            loadJSON(function(response) {
-                data = JSON.parse(response);
-                displayARGs(data.args);
-                displaySites(data.sites);
-            });
+        async function updateData(updatedData) {
+            try {
+                const content = JSON.stringify(updatedData);
+                const encodedContent = btoa(content); // Encode content to base64
+                const response = await fetch('https://api.github.com/repos/ff6f8d68/MCARGarchive/contents/data.json', {
+                    method: 'PUT',
+                    headers: {
+                        Authorization: 'Bearer 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',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: 'Update data.json via client',
+                        content: encodedContent,
+                        sha: 'SHA_OF_CURRENT_FILE', // Replace with current SHA
+                    }),
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const responseData = await response.json();
+                console.log('File updated:', responseData);
+            } catch (error) {
+                console.error('Error updating data:', error);
+            }
         }
+
+        const args = []; // Initialize with your data structure
+
+        const sites = []; // Initialize with your data structure
 
         function displayARGs(argsToDisplay) {
             const argGrid = document.getElementById('arg-grid');
@@ -212,14 +239,14 @@
 
         function searchARGs() {
             const searchInput = document.getElementById('search-input').value.toLowerCase();
-            const filteredARGs = data.args.filter(arg => arg.name.toLowerCase().includes(searchInput));
+            const filteredARGs = args.filter(arg => arg.name.toLowerCase().includes(searchInput));
             displayARGs(filteredARGs);
         }
 
-        function displaySites(sitesToDisplay) {
+        function displaySites() {
             const siteGrid = document.getElementById('site-grid');
             siteGrid.innerHTML = '';
-            sitesToDisplay.forEach(site => {
+            sites.forEach(site => {
                 const siteCard = document.createElement('div');
                 siteCard.className = 'site-card';
                 siteCard.innerHTML = `
@@ -238,9 +265,9 @@
 
             if (name && icon && url) {
                 const newSite = { name, icon, url };
-                data.sites.push(newSite);
-                saveData();
-                displaySites(data.sites);
+                sites.push(newSite);
+                updateData({ args, sites }); // Update the data.json file
+                displaySites();
                 document.getElementById('site-name').value = '';
                 document.getElementById('site-icon').value = '';
                 document.getElementById('site-url').value = '';
@@ -255,21 +282,19 @@
             formContainer.style.display = formContainer.style.display === 'none' ? 'flex' : 'none';
         }
 
-        function saveData() {
-            const jsonData = JSON.stringify(data);
-            const blob = new Blob([jsonData], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'data.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }
-
-        window.onload = init;
+        // Load initial data and display on page load
+        fetchData().then(data => {
+            if (data) {
+                args.push(...data.args);
+                sites.push(...data.sites);
+                displayARGs(args);
+                displaySites();
+            } else {
+                console.error('Failed to fetch data.');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+        });
     </script>
 </body>
 </html>
