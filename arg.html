@@ -137,15 +137,9 @@
     <div class="arg-grid" id="arg-grid">
         <!-- ARG cards will be displayed here -->
     </div>
-    <div class="site-grid" id="site-grid">
-        <!-- Site cards will be displayed here -->
-    </div>
 
     <script>
-        const args = [
-        ];
-
-        const sites = JSON.parse(localStorage.getItem('sites')) || [];
+        const apiUrl = 'api/args.php'; // PHP script handling server-side operations
 
         function displayARGs(argsToDisplay) {
             const argGrid = document.getElementById('arg-grid');
@@ -164,23 +158,10 @@
 
         function searchARGs() {
             const searchInput = document.getElementById('search-input').value.toLowerCase();
-            const filteredARGs = args.filter(arg => arg.name.toLowerCase().includes(searchInput));
-            displayARGs(filteredARGs);
-        }
-
-        function displaySites() {
-            const siteGrid = document.getElementById('site-grid');
-            siteGrid.innerHTML = '';
-            sites.forEach(site => {
-                const siteCard = document.createElement('div');
-                siteCard.className = 'site-card';
-                siteCard.innerHTML = `
-                    <img src="${site.icon}" alt="${site.name}">
-                    <h3>${site.name}</h3>
-                `;
-                siteCard.onclick = () => window.location.href = site.url;
-                siteGrid.appendChild(siteCard);
-            });
+            fetch(apiUrl + `?search=${searchInput}`)
+                .then(response => response.json())
+                .then(data => displayARGs(data))
+                .catch(error => console.error('Error fetching ARGs:', error));
         }
 
         function createSite() {
@@ -190,13 +171,28 @@
 
             if (name && icon && url) {
                 const newSite = { name, icon, url };
-                sites.push(newSite);
-                localStorage.setItem('sites', JSON.stringify(sites));
-                displaySites();
-                document.getElementById('site-name').value = '';
-                document.getElementById('site-icon').value = '';
-                document.getElementById('site-url').value = '';
-                toggleForm(); // Hide form after creating site
+
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(newSite),
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to create site');
+                    }
+                    return response.json();
+                })
+                .then(() => {
+                    alert('Site created successfully');
+                    document.getElementById('site-name').value = '';
+                    document.getElementById('site-icon').value = '';
+                    document.getElementById('site-url').value = '';
+                    toggleForm();
+                })
+                .catch(error => console.error('Error creating site:', error));
             } else {
                 alert('Please fill out all fields.');
             }
@@ -207,9 +203,11 @@
             formContainer.style.display = formContainer.style.display === 'none' ? 'flex' : 'none';
         }
 
-        // Display ARGs and sites on load
-        displayARGs(args);
-        displaySites();
+        // Initial display of ARGs
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => displayARGs(data))
+            .catch(error => console.error('Error fetching ARGs:', error));
     </script>
 </body>
 </html>
