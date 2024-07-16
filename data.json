@@ -1,0 +1,26 @@
+{
+  "args": [
+    {
+      "name": "ARG 1",
+      "image": "path/to/image1.jpg",
+      "description": "Description of ARG 1"
+    },
+    {
+      "name": "ARG 2",
+      "image": "path/to/image2.jpg",
+      "description": "Description of ARG 2"
+    }
+  ],
+  "sites": [
+    {
+      "name": "Site 1",
+      "icon": "path/to/icon1.jpg",
+      "url": "https://site1.example.com"
+    },
+    {
+      "name": "Site 2",
+      "icon": "path/to/icon2.jpg",
+      "url": "https://site2.example.com"
+    }
+  ]
+}
