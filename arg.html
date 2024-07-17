@@ -156,15 +156,6 @@
         <input type="text" id="search-input" placeholder="Search for ARGs...">
         <button onclick="searchARGs()">Search</button>
     </div>
-    <div class="create-container">
-        <button onclick="toggleForm()">Create ARG Site</button>
-    </div>
-    <div class="form-container" id="form-container">
-        <input type="text" id="site-name" placeholder="Site Name">
-        <input type="text" id="site-icon" placeholder="Icon URL">
-        <input type="text" id="site-url" placeholder="Redirect URL">
-        <button onclick="createSite()">Create Site</button>
-    </div>
     <div class="arg-grid" id="arg-grid">
         <!-- ARG cards will be displayed here -->
     </div>
@@ -173,54 +164,21 @@
     </div>
 
     <script>
+        const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/ff6f8d68/MCARGarchive/main/data.json';
+
         async function fetchData() {
             try {
-                const response = await fetch('https://api.github.com/repos/ff6f8d68/MCARGarchive/contents/data.json', {
-                    headers: {
-                        Authorization: 'Bearer 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',
-                    },
-                });
+                const response = await fetch(GITHUB_JSON_URL);
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 const data = await response.json();
-                const content = atob(data.content); // Decode base64-encoded content
-                return JSON.parse(content);
+                return data;
             } catch (error) {
                 console.error('Error fetching data:', error);
                 return null;
             }
         }
-
-        async function updateData(updatedData) {
-            try {
-                const content = JSON.stringify(updatedData);
-                const encodedContent = btoa(content); // Encode content to base64
-                const response = await fetch('https://api.github.com/repos/ff6f8d68/MCARGarchive/contents/data.json', {
-                    method: 'PUT',
-                    headers: {
-                        Authorization: 'Bearer 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',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: 'Update data.json via client',
-                        content: encodedContent,
-                        sha: 'SHA_OF_CURRENT_FILE', // Replace with current SHA
-                    }),
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const responseData = await response.json();
-                console.log('File updated:', responseData);
-            } catch (error) {
-                console.error('Error updating data:', error);
-            }
-        }
-
-        const args = []; // Initialize with your data structure
-
-        const sites = []; // Initialize with your data structure
 
         function displayARGs(argsToDisplay) {
             const argGrid = document.getElementById('arg-grid');
@@ -258,35 +216,13 @@
             });
         }
 
-        function createSite() {
-            const name = document.getElementById('site-name').value;
-            const icon = document.getElementById('site-icon').value;
-            const url = document.getElementById('site-url').value;
-
-            if (name && icon && url) {
-                const newSite = { name, icon, url };
-                sites.push(newSite);
-                updateData({ args, sites }); // Update the data.json file
-                displaySites();
-                document.getElementById('site-name').value = '';
-                document.getElementById('site-icon').value = '';
-                document.getElementById('site-url').value = '';
-                toggleForm(); // Hide form after creating site
-            } else {
-                alert('Please fill out all fields.');
-            }
-        }
-
-        function toggleForm() {
-            const formContainer = document.getElementById('form-container');
-            formContainer.style.display = formContainer.style.display === 'none' ? 'flex' : 'none';
-        }
-
         // Load initial data and display on page load
+        let args = [];
+        let sites = [];
         fetchData().then(data => {
             if (data) {
-                args.push(...data.args);
-                sites.push(...data.sites);
+                args = data.args;
+                sites = data.sites;
                 displayARGs(args);
                 displaySites();
             } else {
