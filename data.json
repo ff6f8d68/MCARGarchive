@@ -1,9 +1,10 @@
 {
   "args": [
-    {
+  {
       "name": "example",
       "image": "path/to/image1.jpg",
-      "url": "https://www.example.com"
+      "description": "Description of example",
+      "url": "https://www.example.com/"
     }
   ]
 }
